@@ -515,9 +515,9 @@ def git_update(repo, is_no_errors=False, is_current_dir=False, git_owner=""):
     elif repo == "sdkjs-plugins":
       cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs-plugins.git", "/build/sdkjs-plugins"], is_no_errors)
     elif repo == "server":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/DEHuckaKpyT/server.git", "/build/server"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "master", "--depth", "1", "https://github.com/DEHuckaKpyT/server.git", "/build/server"], is_no_errors)
     elif repo == "web-apps":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/DEHuckaKpyT/web-apps.git", "/build/web-apps"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "master", "--depth", "1", "https://github.com/DEHuckaKpyT/web-apps.git", "/build/web-apps"], is_no_errors)
     else:
       cmd("git", ["clone", url, folder], is_no_errors)
 
