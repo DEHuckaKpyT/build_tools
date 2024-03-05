@@ -502,26 +502,25 @@ def git_update(repo, is_no_errors=False, is_current_dir=False, git_owner=""):
   folder = get_script_dir() + "/../../" + repo
   if is_current_dir:
     folder = repo
-  is_not_exit = False
   if not is_dir(folder):
-    retClone = cmd("git", ["clone", url, folder], is_no_errors)
-    if retClone != 0:
-      return
-    is_not_exit = True
-  old_cur = os.getcwd()
-  os.chdir(folder)
-  cmd("git", ["fetch"], False if ("1" != config.option("update-light")) else True)
-  if is_not_exit or ("1" != config.option("update-light")):
-    retCheckout = cmd("git", ["checkout", "-f", config.option("branch")], True)
-    if (retCheckout != 0):
-      print("branch does not exist...")
-      print("switching to master...")
-      cmd("git", ["checkout", "-f", "master"])
-    cmd("git", ["submodule", "update", "--init", "--recursive"], True)
-  if (0 != config.option("branch").find("tags/")):
-    cmd("git", ["pull"], False if ("1" != config.option("update-light")) else True)
-    cmd("git", ["submodule", "update", "--recursive", "--remote"], True)
-  os.chdir(old_cur)
+
+    if repo == "core-fonts":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/core-fonts.git", "/build/core-fonts"], is_no_errors)
+    elif repo == "document-templates":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/document-templates.git", "/build/document-templates"], is_no_errors)
+    elif repo == "fonts":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/fonts.git", "/build/fonts"], is_no_errors)
+    elif repo == "sdkjs":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs.git", "/build/sdkjs"], is_no_errors)
+    elif repo == "sdkjs-plugins":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs-plugins.git", "/build/sdkjs-plugins"], is_no_errors)
+    elif repo == "server":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/DEHuckaKpyT/server.git", "/build/server"], is_no_errors)
+    elif repo == "web-apps":
+      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/DEHuckaKpyT/web-apps.git", "/build/web-apps"], is_no_errors)
+    else:
+      cmd("git", ["clone", url, folder], is_no_errors)
+
   return
 
 def get_repositories():
