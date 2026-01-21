@@ -5,13 +5,14 @@ sys.path.append('../../scripts')
 import base
 import os
 import subprocess
+from pathlib import Path
 
 def install_deps():
   if base.is_file("./packages_complete"):
     return
 
   # dependencies
-  packages = ["apt-transport-https", 
+  packages = ["apt-transport-https",
               "autoconf2.13",
               "build-essential",
               "ca-certificates",
@@ -44,8 +45,17 @@ def install_deps():
   base.cmd("sudo", ["apt-get", "install", "-y"] + packages)
 
   # nodejs
+  # TODO FIXME ADDING trusted=yes FOR REPOSITORY. REMOVE IT
+  p = Path("/etc/apt/sources.list.d/nodesource.list")
+  p.write_text(
+      "\n".join(
+          l if "trusted=yes" in l or "deb.nodesource.com/node_14.x" not in l
+          else l.replace("deb ", "deb [trusted=yes] ", 1)
+          for l in p.read_text().splitlines()
+      ) + "\n"
+  )
   # TODO FIXME VERY VERY BAD "--allow-unauthenticated". REMOVE IT
-  base.cmd("sudo", ["apt-get", "install", "-y", "nodejs", "--allow-unauthenticated"])
+  base.cmd("sudo", ["apt-get", "install", "--allow-unauthenticated", "-y", "nodejs"])
   nodejs_cur = 0
   try:
     nodejs_version = base.run_command('node -v')['stdout']
