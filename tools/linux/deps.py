@@ -50,34 +50,6 @@ def install_deps():
     base.cmd("sudo", ["apt-get", "install", "-y", package], True)
 
   # nodejs
-  # TODO FIXME ADDING trusted=yes FOR REPOSITORIES. REMOVE ALL COMMAND
-  repo_file = "/etc/apt/sources.list.d/nodesource.list"
-  # lines of repository Node.js 14
-  node_lines = [
-    "deb [trusted=yes] https://deb.nodesource.com/node_14.x xenial main",
-    "deb-src [trusted=yes] https://deb.nodesource.com/node_14.x xenial main"
-  ]
-  # files is exists
-  if os.path.exists(repo_file):
-    # read existing lines
-    with open(repo_file) as f:
-      lines = f.read().splitlines()
-  else:
-    lines = []
-  # add and change lines NodeSource 14
-  for line in node_lines:
-    found = False
-    for i, l in enumerate(lines):
-      if "deb.nodesource.com/node_14.x" in l:
-        lines[i] = line
-        found = True
-        break
-    if not found:
-      lines.append(line)
-  # save file
-  with open(repo_file, "w") as f:
-    f.write("\n".join(lines) + "\n")
-  print("NodeSource Node.js 14 repository created/updated with trusted=yes")
   base.cmd("sudo", ["apt-get", "install", "-y", "nodejs"])
   nodejs_cur = 0
   try:

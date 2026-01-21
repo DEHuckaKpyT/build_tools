@@ -609,7 +609,6 @@ def git_update(repo, is_no_errors=False, is_current_dir=False, git_owner=""):
   if is_current_dir:
     folder = repo
   if not is_dir(folder):
-
     if repo == "core-fonts":
       cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/core-fonts.git", "/build/core-fonts"], is_no_errors)
     elif repo == "document-templates":
