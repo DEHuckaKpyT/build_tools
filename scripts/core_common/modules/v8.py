@@ -10,10 +10,10 @@ import v8_89
 
 def clean():
   if base.is_dir("depot_tools"):
-    base.delete_dir_with_access_error("depot_tools");
+    base.delete_dir_with_access_error("depot_tools")
     base.delete_dir("depot_tools")
   if base.is_dir("v8"):
-    base.delete_dir_with_access_error("v8");
+    base.delete_dir_with_access_error("v8")
     base.delete_dir("v8")
   if base.is_exist("./.gclient"):
     base.delete_file("./.gclient")
@@ -25,6 +25,8 @@ def clean():
 
 def is_main_platform():
   if (config.check_option("platform", "win_64") or config.check_option("platform", "win_32")):
+    return True
+  if (config.check_option("platform", "win_arm64")):
     return True
   if (config.check_option("platform", "linux_64") or config.check_option("platform", "linux_32") or config.check_option("platform", "linux_arm64")):
     return True
@@ -42,14 +44,9 @@ def is_xp_platform():
   return False
 
 def is_use_clang():
-  gcc_version = base.get_gcc_version()  
-    
-  is_clang = "false"
-  if (gcc_version >= 6000):
-    is_clang = "true"
-
-  print("gcc version: " + str(gcc_version) + ", use clang:" + is_clang)
-  return is_clang
+  if config.option("sysroot") == "" and "1" == config.option("use-clang"):
+    return "true"
+  return "false"
 
 def make():
   if not is_main_platform():
@@ -119,7 +116,7 @@ def make():
     # windows hack (delete later) ----------------------
     if ("windows" == base.host_platform()):
       base.delete_dir_with_access_error("v8/buildtools/win")
-      base.cmd("git", ["config", "--system", "core.longpaths", "true"])
+      base.cmd("git", ["config", "--system", "core.longpaths", "true"], True)
       base.cmd("gclient", ["sync", "--force"], True)
     else:
       base.cmd("gclient", ["sync"], True) 
@@ -233,8 +230,7 @@ def make_xp():
         base.replaceInFile("depot_tools/cipd.ps1", "windows-386", "windows-amd64")
   
   # old variant
-  #path_to_python2 = "/depot_tools/win_tools-2_7_13_chromium7_bin/python/bin"
-  path_to_python2 = "/depot_tools/bootstrap-2@3_8_10_chromium_23_bin/python/bin"
+  path_to_python2 = "/depot_tools/bootstrap-2@3_11_8_chromium_35_bin/python/bin"
   os.environ["PATH"] = os.pathsep.join([base_dir + "/depot_tools", 
     base_dir + path_to_python2, 
     config.option("vs-path") + "/../Common7/IDE",
@@ -246,7 +242,7 @@ def make_xp():
     base.cmd("./depot_tools/fetch", ["v8"], True)
     base.cmd("./depot_tools/gclient", ["sync", "-r", "4.10.253"], True)
     base.delete_dir_with_access_error("v8/buildtools/win")
-    base.cmd("git", ["config", "--system", "core.longpaths", "true"])
+    base.cmd("git", ["config", "--system", "core.longpaths", "true"], True)
     base.cmd("gclient", ["sync", "--force"], True)
 
   # save common py script
@@ -269,7 +265,7 @@ def make_xp():
     "for file in projects:",
     "  replaceInFile(file, '<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>', '<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>')",
     "  replaceInFile(file, '<RuntimeLibrary>MultiThreaded</RuntimeLibrary>', '<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>')",
-    ]);
+    ])
 
   programFilesDir = base.get_env("ProgramFiles")
   if ("" != base.get_env("ProgramFiles(x86)")):

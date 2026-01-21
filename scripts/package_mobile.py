@@ -22,7 +22,7 @@ def make_mobile():
     utils.sh("rm -rfv *.zip", verbose=True)
 
   utils.log_h2("mobile build")
-  ret = utils.sh("zip -r " + zip_file + " ./android* ./js", verbose=True)
+  ret = utils.sh("zip -r " + zip_file + " ./android ./ios", verbose=True)
   utils.set_summary("mobile build", ret)
 
   if common.deploy:
@@ -31,7 +31,6 @@ def make_mobile():
       key = "mobile/android/" + zip_file
       ret = utils.s3_upload(zip_file, "s3://" + branding.s3_bucket + "/" + key)
       if ret:
-        utils.add_deploy_data(key)
         utils.log("URL: " + branding.s3_base_url + "/" + key)
     utils.set_summary("mobile deploy", ret)
 

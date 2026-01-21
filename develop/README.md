@@ -6,6 +6,10 @@ but don't want to compile pretty compilcated core product to make those changes.
 
 ## System requirements
 
+**Note**: ARM-based architectures are currently **NOT** supported;
+attempting to run the images on ARM devices may result in startup failures 
+or other runtime issues.
+
 ### Windows
 
 You need the latest
@@ -45,7 +49,7 @@ instruction show how to use docker without sudo.
 ```bash
 cd build_tools/develop
 docker pull onlyoffice/documentserver
-docker build -t documentserver-develop .
+docker build --no-cache -t documentserver-develop .
 ```
 
 **Note**: The dot at the end is required.
@@ -61,7 +65,6 @@ Clone development modules to the work dir
 * `server` repo is located [here](https://github.com/ONLYOFFICE/server/)
 
 ```bash
-cd ../..
 git clone https://github.com/ONLYOFFICE/sdkjs.git
 git clone https://github.com/ONLYOFFICE/web-apps.git
 git clone https://github.com/ONLYOFFICE/server.git
@@ -75,13 +78,14 @@ along with the relative paths to the required folders.
 The folders `sdkjs` and `web-apps` are required for proper development workflow.
 The folders `server` is optional
 
+**Note**: Run command with the current working directory
+containing `sdkjs`, `web-apps`...
+
 **Note**: ONLYOFFICE server uses port 80.
 Look for another application using port 80 and stop it
 
 **Note**: Server start with `sdkjs` and `web-apps` takes 15 minutes
 and takes 20 minutes with `server`
-
-**Note**: Run command from work dir with development modules
 
 ### docker run on Windows (PowerShell)
 

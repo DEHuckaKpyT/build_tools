@@ -6,6 +6,7 @@ import base
 import os
 import subprocess
 import deps
+import qt_binary_build
 
 def get_branch_name(directory):
   cur_dir = os.getcwd()
@@ -20,7 +21,7 @@ def get_branch_name(directory):
 def install_qt():
   # qt
   if not base.is_file("./qt_source_5.9.9.tar.xz"):
-    base.download("https://download.qt.io/new_archive/qt/5.9/5.9.9/single/qt-everywhere-opensource-src-5.9.9.tar.xz", "./qt_source_5.9.9.tar.xz")
+    base.download("https://github.com/ONLYOFFICE-data/build_tools_data/raw/refs/heads/master/qt/qt-everywhere-opensource-src-5.9.9.tar.xz", "./qt_source_5.9.9.tar.xz")
 
   if not base.is_dir("./qt-everywhere-opensource-src-5.9.9"):
     base.cmd("tar", ["-xf", "./qt_source_5.9.9.tar.xz"])
@@ -55,14 +56,21 @@ def install_qt():
   base.cmd_in_dir("./qt-everywhere-opensource-src-5.9.9", "make", ["-j", "4"])
   base.cmd_in_dir("./qt-everywhere-opensource-src-5.9.9", "make", ["install"])
   return
+  
+def install_qt_prebuild():
+  base.cmd("python3", ["qt_binary_fetch.py", "all"])
+  return
 
 if not base.is_file("./node_js_setup_14.x"):
   print("install dependencies...")
   deps.install_deps()
 
-if not base.is_dir("./qt_build"):  
+if not base.is_dir("./qt_build"):
   print("install qt...")
-  install_qt()
+  if base.get_env("DO_NOT_USE_PREBUILD_QT") == "1":
+    qt_binary_build.install_qt()
+  else:
+    install_qt_prebuild()
 
 branch = get_branch_name("../..")
 
@@ -103,6 +111,3 @@ build_tools_params = ["--branch", branch,
 
 base.cmd_in_dir("../..", "./configure.py", build_tools_params)
 base.cmd_in_dir("../..", "./make.py")
-
-
-

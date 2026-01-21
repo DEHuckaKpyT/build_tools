@@ -12,7 +12,7 @@ def copy_lib_with_links(src_dir, dst_dir, lib, version):
   lib_major_name = lib + "." + major_version
 
   base.copy_file(src_dir + "/" + lib_full_name, dst_dir + "/" + lib_full_name)
-  
+
   base.cmd_in_dir(dst_dir, "ln", ["-s", "./" + lib_full_name, "./" + lib_major_name])
   base.cmd_in_dir(dst_dir, "ln", ["-s", "./" + lib_major_name, "./" + lib])
 
@@ -40,7 +40,7 @@ def make():
     isWindowsXP = False if (-1 == native_platform.find("_xp")) else True
     platform = native_platform[0:-3] if isWindowsXP else native_platform
 
-    apps_postfix = "build" + base.qt_dst_postfix();
+    apps_postfix = "build" + base.qt_dst_postfix()
     if ("" != config.option("branding")):
       apps_postfix += ("/" + config.option("branding"))
     apps_postfix += "/"
@@ -65,12 +65,14 @@ def make():
     base.copy_lib(build_libraries_path, root_dir + "/converter", "PdfFile")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "DjVuFile")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "XpsFile")
+    base.copy_lib(build_libraries_path, root_dir + "/converter", "OFDFile")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "HtmlFile2")
-    base.copy_lib(build_libraries_path, root_dir + "/converter", "HtmlRenderer")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "Fb2File")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "EpubFile")
+    base.copy_lib(build_libraries_path, root_dir + "/converter", "IWorkFile")
+    base.copy_lib(build_libraries_path, root_dir + "/converter", "HWPFile")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "DocxRenderer")
-    
+
     if ("ios" == platform):
       base.copy_lib(build_libraries_path, root_dir + "/converter", "x2t")
     else:
@@ -80,28 +82,18 @@ def make():
     #  base.generate_check_linux_system(git_dir + "/build_tools", root_dir + "/converter")
 
     # icu
-    if (0 == platform.find("win")):
-      base.copy_file(core_dir + "/Common/3dParty/icu/" + platform + "/build/icudt58.dll", root_dir + "/converter/icudt58.dll")
-      base.copy_file(core_dir + "/Common/3dParty/icu/" + platform + "/build/icuuc58.dll", root_dir + "/converter/icuuc58.dll")
-      #base.copy_file(git_dir + "/desktop-apps/common/converter/package.config", root_dir + "/converter/package.config")
-
-    if (0 == platform.find("linux")):
-      base.copy_file(core_dir + "/Common/3dParty/icu/" + platform + "/build/libicudata.so.58", root_dir + "/converter/libicudata.so.58")
-      base.copy_file(core_dir + "/Common/3dParty/icu/" + platform + "/build/libicuuc.so.58", root_dir + "/converter/libicuuc.so.58")
-
-    if (0 == platform.find("mac")):
-      base.copy_file(core_dir + "/Common/3dParty/icu/" + platform + "/build/libicudata.58.dylib", root_dir + "/converter/libicudata.58.dylib")
-      base.copy_file(core_dir + "/Common/3dParty/icu/" + platform + "/build/libicuuc.58.dylib", root_dir + "/converter/libicuuc.58.dylib")
+    base.deploy_icu(core_dir, root_dir + "/converter", native_platform)
 
     # doctrenderer
     if isWindowsXP:
       base.copy_lib(build_libraries_path + "/xp", root_dir + "/converter", "doctrenderer")
     else:
-      base.copy_lib(build_libraries_path, root_dir + "/converter", "doctrenderer")      
+      base.copy_lib(build_libraries_path, root_dir + "/converter", "doctrenderer")
     base.copy_v8_files(core_dir, root_dir + "/converter", platform, isWindowsXP)
 
     base.generate_doctrenderer_config(root_dir + "/converter/DoctRenderer.config", "../editors/", "desktop", "", "../dictionaries")
     base.copy_dir(git_dir + "/document-templates/new", root_dir + "/converter/empty")
+    base.copy_dir(git_dir + "/desktop-apps/common/templates", root_dir + "/converter/templates")
 
     # dictionaries
     base.copy_dictionaries(git_dir + "/dictionaries", root_dir + "/dictionaries")
@@ -113,8 +105,6 @@ def make():
     base.copy_dir(git_dir  + "/core-fonts/openoffice", root_dir + "/fonts/openoffice")
     base.copy_file(git_dir + "/core-fonts/ASC.ttf",    root_dir + "/fonts/ASC.ttf")
 
-    base.copy_file(git_dir + "/desktop-apps/common/package/license/3dparty/3DPARTYLICENSE", root_dir + "/3DPARTYLICENSE")
-  
     # cef
     build_dir_name = "build"
     if (0 == platform.find("linux")) and (config.check_option("config", "cef_version_107")):
@@ -127,6 +117,20 @@ def make():
     else:
       base.copy_files(core_dir + "/Common/3dParty/cef/" + native_platform + "/" + build_dir_name + "/*", root_dir)
 
+    if (0 == platform.find("mac")):
+      dir_base_old = os.getcwd()
+      os.chdir(root_dir + "/Chromium Embedded Framework.framework")
+      base.create_dir("Versions")
+      base.create_dir("Versions/A")
+      base.move_file("Chromium Embedded Framework", "Versions/A/Chromium Embedded Framework")
+      base.move_dir("Resources", "Versions/A/Resources")
+      base.move_dir("Libraries", "Versions/A/Libraries")
+      base.cmd("ln", ["-s", "Versions/A/Chromium Embedded Framework", "Chromium Embedded Framework"])
+      base.cmd("ln", ["-s", "Versions/A/Resources", "Resources"])
+      base.cmd("ln", ["-s", "Versions/A/Libraries", "Libraries"])
+      base.cmd("ln", ["-s", "A", "Versions/Current"])
+      os.chdir(dir_base_old);
+
     isUseQt = True
     if (0 == platform.find("mac")) or (0 == platform.find("ios")):
       isUseQt = False
@@ -137,18 +141,18 @@ def make():
     base.copy_lib(build_libraries_path + ("/xp" if isWindowsXP else ""), root_dir, "ascdocumentscore")
     if (0 != platform.find("mac")):
       base.copy_lib(build_libraries_path + ("/xp" if isWindowsXP else ""), root_dir, "qtascdocumentscore")
-    
+
     if (0 == platform.find("mac")):
       base.copy_dir(core_build_dir + "/bin/" + platform_postfix + "/editors_helper.app", root_dir + "/editors_helper.app")
     else:
       base.copy_exe(core_build_dir + "/bin/" + platform_postfix + ("/xp" if isWindowsXP else ""), root_dir, "editors_helper")
-    
+
     if isUseQt:
       base.qt_copy_lib("Qt5Core", root_dir)
       base.qt_copy_lib("Qt5Gui", root_dir)
       base.qt_copy_lib("Qt5PrintSupport", root_dir)
       base.qt_copy_lib("Qt5Svg", root_dir)
-      base.qt_copy_lib("Qt5Widgets", root_dir)      
+      base.qt_copy_lib("Qt5Widgets", root_dir)
       base.qt_copy_lib("Qt5Network", root_dir)
       base.qt_copy_lib("Qt5OpenGL", root_dir)
 
@@ -157,7 +161,7 @@ def make():
       base.qt_copy_plugin("imageformats", root_dir)
       base.qt_copy_plugin("platforms", root_dir)
       base.qt_copy_plugin("platforminputcontexts", root_dir)
-      base.qt_copy_plugin("printsupport", root_dir)      
+      base.qt_copy_plugin("printsupport", root_dir)
 
       base.qt_copy_plugin("platformthemes", root_dir)
       base.qt_copy_plugin("xcbglintegrations", root_dir)
@@ -174,7 +178,7 @@ def make():
         base.qt_copy_lib("Qt5DBus", root_dir)
         base.qt_copy_lib("Qt5X11Extras", root_dir)
         base.qt_copy_lib("Qt5XcbQpa", root_dir)
-        base.qt_copy_icu(root_dir)
+        base.qt_copy_icu(root_dir, platform)
         if not base.check_congig_option_with_platfom(platform, "libvlc"):
           base.copy_files(base.get_env("QT_DEPLOY") + "/../lib/libqgsttools_p.so*", root_dir)
 
@@ -182,6 +186,8 @@ def make():
         base.copy_file(git_dir + "/desktop-apps/win-linux/extras/projicons/" + apps_postfix + "/projicons.exe", root_dir + "/DesktopEditors.exe")
         if not isWindowsXP:
           base.copy_file(git_dir + "/desktop-apps/win-linux/extras/update-daemon/" + apps_postfix + "/updatesvc.exe", root_dir + "/updatesvc.exe")
+        else:
+          base.copy_file(git_dir + "/desktop-apps/win-linux/extras/online-installer/" + apps_postfix + "/online-installer.exe", root_dir + "/online-installer.exe")
         base.copy_file(git_dir + "/desktop-apps/win-linux/" + apps_postfix + "/DesktopEditors.exe", root_dir + "/editors.exe")
         base.copy_file(git_dir + "/desktop-apps/win-linux/res/icons/desktopeditors.ico", root_dir + "/app.ico")
       elif (0 == platform.find("linux")):
@@ -189,9 +195,9 @@ def make():
 
       if base.check_congig_option_with_platfom(platform, "libvlc"):
         vlc_dir = git_dir + "/core/Common/3dParty/libvlc/build/" + platform + "/lib"
-        
+
         if (0 == platform.find("win")):
-          base.copy_dir(vlc_dir + "/plugins", root_dir + "/plugins")          
+          base.copy_dir(vlc_dir + "/plugins", root_dir + "/plugins")
           base.copy_files(vlc_dir + "/*.dll", root_dir)
           base.copy_file(vlc_dir + "/vlc-cache-gen.exe", root_dir + "/vlc-cache-gen.exe")
         elif (0 == platform.find("linux")):
@@ -214,6 +220,8 @@ def make():
     base.create_dir(root_dir + "/editors")
     base.copy_dir(base_dir + "/js/" + branding + "/desktop/sdkjs", root_dir + "/editors/sdkjs")
     base.copy_dir(base_dir + "/js/" + branding + "/desktop/web-apps", root_dir + "/editors/web-apps")
+    for file in glob.glob(root_dir + "/editors/web-apps/apps/*/*/*.js.map"):
+      base.delete_file(file)
     base.copy_dir(git_dir + "/desktop-sdk/ChromiumBasedEditors/resources/local", root_dir + "/editors/sdkjs/common/Images/local")
 
     base.create_dir(root_dir + "/editors/sdkjs-plugins")
@@ -235,7 +243,22 @@ def make():
     #base.copy_dir(git_dir + "/desktop-sdk/ChromiumBasedEditors/plugins/encrypt/ui/common/{14A8FC87-8E26-4216-B34E-F27F053B2EC4}", root_dir + "/editors/sdkjs-plugins/{14A8FC87-8E26-4216-B34E-F27F053B2EC4}")
     #base.copy_dir(git_dir + "/desktop-sdk/ChromiumBasedEditors/plugins/encrypt/ui/engine/database/{9AB4BBA8-A7E5-48D5-B683-ECE76A020BB1}", root_dir + "/editors/sdkjs-plugins/{9AB4BBA8-A7E5-48D5-B683-ECE76A020BB1}")
     base.copy_sdkjs_plugin(git_dir + "/desktop-sdk/ChromiumBasedEditors/plugins", root_dir + "/editors/sdkjs-plugins", "sendto", True)
-  
+
+    isUseAgent = True
+    if isWindowsXP:
+      isUseAgent = False
+    if (0 == platform.find("mac")) and (config.check_option("config", "use_v8")):
+      isUseAgent = False
+
+    if (isUseAgent):
+      agent_plugin_dir = git_dir + "/desktop-sdk/ChromiumBasedEditors/plugins/ai-agent"
+      if (False):
+        base.cmd_in_dir(agent_plugin_dir, "npm", ["install"], True)
+        base.cmd_in_dir(agent_plugin_dir, "npm", ["run", "build"], True)
+        base.copy_dir(agent_plugin_dir + "/{9DC93CDB-B576-4F0C-B55E-FCC9C48DD777}", root_dir + "/editors/sdkjs-plugins/{9DC93CDB-B576-4F0C-B55E-FCC9C48DD777}")
+      else:
+        base.copy_dir(agent_plugin_dir + "/deploy/{9DC93CDB-B576-4F0C-B55E-FCC9C48DD777}", root_dir + "/editors/sdkjs-plugins/{9DC93CDB-B576-4F0C-B55E-FCC9C48DD777}")
+
     base.copy_file(base_dir + "/js/" + branding + "/desktop/index.html", root_dir + "/index.html")
     base.create_dir(root_dir + "/editors/webext")
     base.copy_file(base_dir + "/js/" + branding + "/desktop/noconnect.html", root_dir + "/editors/webext/noconnect.html")
@@ -248,7 +271,10 @@ def make():
 
     isUseJSC = False
     if (0 == platform.find("mac")):
-      file_size_doctrenderer = os.path.getsize(root_dir + "/converter/libdoctrenderer.dylib")
+      doctrenderer_lib = "libdoctrenderer.dylib"
+      if config.check_option("config", "bundle_dylibs"):
+        doctrenderer_lib = "doctrenderer.framework/doctrenderer"
+      file_size_doctrenderer = os.path.getsize(root_dir + "/converter/" + doctrenderer_lib)
       print("file_size_doctrenderer: " + str(file_size_doctrenderer))
       if (file_size_doctrenderer < 5*1024*1024):
         isUseJSC = True
@@ -256,39 +282,66 @@ def make():
     if isUseJSC:
       base.delete_file(root_dir + "/converter/icudtl.dat")
 
+    base.create_x2t_js_cache(root_dir + "/converter", "desktop", platform)
+
     if (0 == platform.find("win")):
       base.delete_file(root_dir + "/cef_sandbox.lib")
       base.delete_file(root_dir + "/libcef.lib")
 
-    isMacArmPlaformOnIntel = False
+    is_host_not_arm = False
+    host_platform = ""
+
+    # TODO: fix this on mac_arm64 (qemu)
+    # on windows we are using qemu
     if (platform == "mac_arm64") and not base.is_os_arm():
-      isMacArmPlaformOnIntel = True
+      is_host_not_arm = True
+      host_platform = "mac_64"
 
     # all themes generate ----
     base.copy_exe(core_build_dir + "/bin/" + platform_postfix, root_dir + "/converter", "allfontsgen")
     base.copy_exe(core_build_dir + "/bin/" + platform_postfix, root_dir + "/converter", "allthemesgen")
 
     if (0 == platform.find("mac")):
+      # gen plists with max_depth 2 because frameworks are only located in root_dir and converter subdirectory
+      base.for_each_framework(root_dir, "mac", callbacks=[base.generate_plist], max_depth=2)
       base.mac_correct_rpath_desktop(root_dir)
 
-    if isMacArmPlaformOnIntel:
+    if is_host_not_arm:
       sdkjs_dir = root_dir + "/editors/sdkjs"
-      end_find_platform = sdkjs_dir.rfind("/mac_arm64/")
-      sdkjs_dir_mac64 = sdkjs_dir[0:end_find_platform] + "/mac_64/" + sdkjs_dir[end_find_platform+11:]
+      str1 = "/" + platform + "/"
+      str2 = "/" + host_platform + "/"
+      sdkjs_dir_host = sdkjs_dir.replace(str1, str2)
       base.delete_dir(sdkjs_dir)
-      base.copy_dir(sdkjs_dir_mac64, sdkjs_dir)
+      base.copy_dir(sdkjs_dir_host, sdkjs_dir)
     else:
       themes_params = []
       if ("" != config.option("themesparams")):
         themes_params = ["--params=\"" + config.option("themesparams") + "\""]
-      base.cmd_exe(root_dir + "/converter/allfontsgen", ["--use-system=\"1\"", "--input=\"" + root_dir + "/fonts\"", "--input=\"" + git_dir + "/core-fonts\"", "--allfonts=\"" + root_dir + "/converter/AllFonts.js\"", "--selection=\"" + root_dir + "/converter/font_selection.bin\""])
-      base.cmd_exe(root_dir + "/converter/allthemesgen", ["--converter-dir=\"" + root_dir + "/converter\"", "--src=\"" + root_dir + "/editors/sdkjs/slide/themes\"", "--allfonts=\"AllFonts.js\"", "--output=\"" + root_dir + "/editors/sdkjs/common/Images\""] + themes_params)
+
+      params_allfontsgen = ["--use-system=\"1\"", "--input=\"" + root_dir + "/fonts\"", "--input=\"" + git_dir + "/core-fonts\"", "--allfonts=\"" + root_dir + "/converter/AllFonts.js\"", "--selection=\"" + root_dir + "/converter/font_selection.bin\""]
+      params_allthemesgen = ["--converter-dir=\"" + root_dir + "/converter\"", "--src=\"" + root_dir + "/editors/sdkjs/slide/themes\"", "--allfonts=\"AllFonts.js\"", "--output=\"" + root_dir + "/editors/sdkjs/common/Images\""] + themes_params
+      if (0 == platform.find("linux_arm") and not base.is_os_arm()):
+        x2t_origin = ""
+        if (config.option("sysroot") != ""):
+          x2t_origin = base.create_qemu_wrapper(root_dir + "/converter/x2t", platform)
+ 
+        base.cmd_in_dir_qemu(platform, root_dir + "/converter", "./allfontsgen", params_allfontsgen, True)
+        base.cmd_in_dir_qemu(platform, root_dir + "/converter", "./allthemesgen", params_allthemesgen, True)
+
+        if "" != x2t_origin:
+          base.delete_file(root_dir + "/converter/x2t")
+          base.move_file(x2t_origin, root_dir + "/converter/x2t")
+      else:        
+        base.cmd_exe(root_dir + "/converter/allfontsgen", params_allfontsgen, True)
+        base.cmd_exe(root_dir + "/converter/allthemesgen", params_allthemesgen, True)
+
       base.delete_file(root_dir + "/converter/AllFonts.js")
       base.delete_file(root_dir + "/converter/font_selection.bin")
       base.delete_file(root_dir + "/converter/fonts.log")
 
-    base.delete_exe(root_dir + "/converter/allfontsgen")
-    base.delete_exe(root_dir + "/converter/allthemesgen")
+    if not base.is_use_create_artifacts_qemu(platform):
+      base.delete_exe(root_dir + "/converter/allfontsgen")
+      base.delete_exe(root_dir + "/converter/allthemesgen")
 
     if not isUseJSC:
       base.delete_file(root_dir + "/editors/sdkjs/slide/sdk-all.cache")

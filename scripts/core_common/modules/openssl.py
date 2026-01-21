@@ -54,6 +54,14 @@ def make():
       qmake_bat.append("call nmake clean")
       qmake_bat.append("call nmake build_libs install")
       base.run_as_bat(qmake_bat, True)
+    if (-1 != config.option("platform").find("win_arm64")) and not base.is_dir("../build/win_arm64"):
+      base.create_dir("./../build/win_arm64")
+      qmake_bat = []
+      qmake_bat.append("call \"" + config.option("vs-path") + "/vcvarsall.bat\" x64_arm64")
+      qmake_bat.append("perl Configure VC-WIN64-ARM --prefix=" + old_cur_dir + "\\build\\win_arm64 --openssldir=" + old_cur_dir + "\\build\\win_arm64 no-shared no-asm enable-md2")
+      qmake_bat.append("call nmake clean")
+      qmake_bat.append("call nmake build_libs install")
+      base.run_as_bat(qmake_bat, True)
     os.chdir(old_cur)
     # xp ----------------------------------------------------------------------------------------------------
     os.chdir(base_dir + "/openssl")
@@ -79,28 +87,46 @@ def make():
     # -------------------------------------------------------------------------------------------------------
     return
 
-  if (-1 != config.option("platform").find("linux")) and not base.is_dir("../build/linux_64"):
+  if (-1 != config.option("platform").find("linux")) and not base.is_dir("../build/linux_64"):     
     base.cmd("./config", ["enable-md2", "no-shared", "no-asm", "--prefix=" + old_cur_dir + "/build/linux_64", "--openssldir=" + old_cur_dir + "/build/linux_64"])
-    base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden")
-    base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden")
-    base.cmd("make")
-    base.cmd("make", ["install"])
-    base.cmd("make", ["clean"], True)
-    # TODO: support x86
+    if "1" == config.option("use-clang"):
+      base.replaceInFile("./Makefile", "CC=$(CROSS_COMPILE)gcc", "CC=$(CROSS_COMPILE)clang")
+      base.replaceInFile("./Makefile", "CXX=$(CROSS_COMPILE)g++", "CXX=$(CROSS_COMPILE)clang++")
+      base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden")
+      base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden -stdlib=libc++")
+      base.replaceInFile("./Makefile", "LDFLAGS=", "LDFLAGS=-stdlib=libc++")
+    elif config.option("sysroot") == "":
+      base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden")
+      base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden")
+    else:
+      base.replaceInFile("./Makefile", "CROSS_COMPILE=", "CROSS_COMPILE=" + config.get_custom_sysroot_bin("linux_64") + "/")
+      base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden --sysroot=" + config.option("sysroot_linux_64"))
+      base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden --sysroot=" + config.option("sysroot_linux_64"))
+
+    if config.option("sysroot") == "":
+      base.cmd("make", [])
+      base.cmd("make", ["install"])
+      base.cmd("make", ["clean"], True)
+    else:
+      base.set_sysroot_env("linux_64")
+      base.cmd_exe("make", [])
+      base.cmd_exe("make", ["install"])
+      base.cmd_exe("make", ["clean"], True)
+      base.restore_sysroot_env()
 
   if (-1 != config.option("platform").find("linux_arm64")) and not base.is_dir("../build/linux_arm64"):
-    if ("x86_64" != platform.machine()):
+    if (base.is_os_arm()):
       base.copy_dir("../build/linux_64", "../build/linux_arm64")
     else:
-      cross_compiler_arm64 = config.option("arm64-toolchain-bin")
-      if ("" == cross_compiler_arm64):
-        cross_compiler_arm64 = "/usr/bin"
-      cross_compiler_arm64_prefix = cross_compiler_arm64 + "/" + base.get_prefix_cross_compiler_arm64()
-      base.cmd("./Configure", ["linux-aarch64", "--cross-compile-prefix=" + cross_compiler_arm64_prefix, "enable-md2", "no-shared", "no-asm", "no-tests", "--prefix=" + old_cur_dir + "/build/linux_arm64", "--openssldir=" + old_cur_dir + "/build/linux_arm64"])
+      if config.option("sysroot") != "":
+        base.set_sysroot_env("linux_arm64")
+      base.cmd("./Configure", ["linux-aarch64", "enable-md2", "no-shared", "no-asm", "no-tests", "--prefix=" + old_cur_dir + "/build/linux_arm64", "--openssldir=" + old_cur_dir + "/build/linux_arm64"])
       base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden")
       base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden")
       base.cmd("make", [], True)
       base.cmd("make", ["install"], True)
+      if config.option("sysroot") != "":
+        base.restore_sysroot_env()
 
   if (-1 != config.option("platform").find("mac")) and not base.is_dir("../build/mac_64"):
     base.cmd("./Configure", ["enable-md2", "no-shared", "no-asm", "darwin64-x86_64-cc", "--prefix=" + old_cur_dir + "/build/mac_64", "--openssldir=" + old_cur_dir + "/build/mac_64", "-mmacosx-version-min=10.11"])

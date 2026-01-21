@@ -8,8 +8,8 @@ necessary for the compilation process, all the dependencies required for the
  correct work, as well as to get the latest version of
 **ONLYOFFICE products** source code and build all their components.
 
-**Important!**  We can only guarantee the correct work of the products built from
-the `master` branch.
+**Important!**  We can only guarantee the correct work of the products built
+from the `master` branch.
 
 ## How to use - Linux
 
@@ -196,9 +196,8 @@ LD_LIBRARY_PATH=./ ./DesktopEditors
     **Note**: The created database must have **onlyoffice** both for user and password.
 
     ```bash
-    sudo -i -u postgres psql -c "CREATE DATABASE onlyoffice;"
-    sudo -i -u postgres psql -c "CREATE USER onlyoffice WITH password 'onlyoffice';"
-    sudo -i -u postgres psql -c "GRANT ALL privileges ON DATABASE onlyoffice TO onlyoffice;"
+    sudo -i -u postgres psql -c "CREATE USER onlyoffice WITH PASSWORD 'onlyoffice';"
+    sudo -i -u postgres psql -c "CREATE DATABASE onlyoffice OWNER onlyoffice;"
     ```
 
 3. Configure the database:
