@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 platformPrefixes = {
   "windows_x64":      "win_64",
