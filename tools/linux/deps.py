@@ -44,7 +44,7 @@ def install_deps():
   base.cmd("sudo", ["apt-get", "install", "-y"] + packages)
 
   # nodejs
-  # TODO FIXME ОЧЕНЬ ПЛОХО ДЕЛАТЬ "--allow-unauthenticated". ОБЯЗАТЕЛЬНО УБРАТЬ
+  # TODO FIXME VERY VERY BAD "--allow-unauthenticated". REMOVE IT
   base.cmd("sudo", ["apt-get", "install", "-y", "nodejs", "--allow-unauthenticated"])
   nodejs_cur = 0
   try:
