@@ -44,7 +44,8 @@ def install_deps():
   base.cmd("sudo", ["apt-get", "install", "-y"] + packages)
 
   # nodejs
-  base.cmd("sudo", ["apt-get", "install", "-y", "nodejs"])
+  # TODO FIXME ОЧЕНЬ ПЛОХО ДЕЛАТЬ "--allow-unauthenticated". ОБЯЗАТЕЛЬНО УБРАТЬ
+  base.cmd("sudo", ["apt-get", "install", "-y", "nodejs", "--allow-unauthenticated"])
   nodejs_cur = 0
   try:
     nodejs_version = base.run_command('node -v')['stdout']
