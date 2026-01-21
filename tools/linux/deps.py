@@ -44,20 +44,14 @@ def install_deps():
   base.cmd("sudo", ["apt-get", "install", "-y"] + packages)
 
   # nodejs
-  # TODO FIXME ADDING trusted=yes FOR REPOSITORY. REMOVE IT
-  p = "/etc/apt/sources.list.d/nodesource.list"
-  with open(p) as f:
-    lines = f.read().splitlines()
-  with open(p, "w") as f:
-    f.write(
-      "\n".join(
-        l if "trusted=yes" in l or "deb.nodesource.com/node_14.x" not in l
-        else l.replace("deb ", "deb [trusted=yes] ", 1)
-        for l in lines
-      ) + "\n"
-    )
-  # TODO FIXME VERY VERY BAD "--allow-unauthenticated". REMOVE IT
-  base.cmd("sudo", ["apt-get", "install", "--allow-unauthenticated", "-y", "nodejs"])
+  # TODO FIXME ADDING trusted=yes FOR REPOSITORIES. REMOVE ALL COMMAND
+  base.cmd("sudo", [
+    "apt-get", "update",
+    "-o", "Acquire::AllowInsecureRepositories=true",
+    "-o", "Acquire::AllowDowngradeToInsecureRepositories=true"
+  ])
+  # TODO FIXME VERY VERY BAD "-o", "Acquire::AllowInsecureRepositories=true". REMOVE PART
+  base.cmd("sudo", ["apt-get", "install", "-y", "nodejs", "-o", "Acquire::AllowInsecureRepositories=true"])
   nodejs_cur = 0
   try:
     nodejs_version = base.run_command('node -v')['stdout']
