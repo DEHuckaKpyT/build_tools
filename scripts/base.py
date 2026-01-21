@@ -461,12 +461,12 @@ def create_qemu_wrapper(binary_path, platform):
   
   if os.path.exists(binary_path):
     os.rename(binary_path, binary_bin)
-  
-  wrapper_content = f"""#!/bin/bash
-DIR="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
-export QEMU_LD_PREFIX={sysroot}
-exec qemu-aarch64 -L {sysroot} "$DIR/{binary_name}.bin" "$@"
-"""
+
+  wrapper_content = """#!/bin/bash
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export QEMU_LD_PREFIX=%s
+exec qemu-aarch64 -L %s "$DIR/%s.bin" "$@"
+""" % (sysroot, sysroot, binary_name)
   
   with open(binary_path, 'w') as f:
     f.write(wrapper_content)
