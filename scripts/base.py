@@ -462,11 +462,11 @@ def create_qemu_wrapper(binary_path, platform):
   if os.path.exists(binary_path):
     os.rename(binary_path, binary_bin)
 
-  wrapper_content = """#!/bin/bash
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export QEMU_LD_PREFIX=%s
-exec qemu-aarch64 -L %s "$DIR/%s.bin" "$@"
-""" % (sysroot, sysroot, binary_name)
+  wrapper_content = f'''#!/bin/bash
+DIR="$(cd "$(dirname "${{BASH_SOURCE[0]}}")" && pwd)"
+export QEMU_LD_PREFIX={sysroot}
+exec qemu-aarch64 -L {sysroot} "$DIR/{binary_name}.bin" "$@"
+'''
   
   with open(binary_path, 'w') as f:
     f.write(wrapper_content)
@@ -610,15 +610,15 @@ def git_update(repo, is_no_errors=False, is_current_dir=False, git_owner=""):
     folder = repo
   if not is_dir(folder):
     if repo == "core-fonts":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/core-fonts.git", "/build/core-fonts"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "v9.2.1.1", "--depth", "1", "https://github.com/ONLYOFFICE/core-fonts.git", "/build/core-fonts"], is_no_errors)
     elif repo == "document-templates":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/document-templates.git", "/build/document-templates"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "v9.2.1.1", "--depth", "1", "https://github.com/ONLYOFFICE/document-templates.git", "/build/document-templates"], is_no_errors)
     elif repo == "fonts":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/fonts.git", "/build/fonts"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "v9.2.1.1", "--depth", "1", "https://github.com/ONLYOFFICE/fonts.git", "/build/fonts"], is_no_errors)
     elif repo == "sdkjs":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs.git", "/build/sdkjs"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "v9.2.1.1", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs.git", "/build/sdkjs"], is_no_errors)
     elif repo == "sdkjs-plugins":
-      cmd("git", ["clone", "--quiet", "--branch", "v8.1.0.13", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs-plugins.git", "/build/sdkjs-plugins"], is_no_errors)
+      cmd("git", ["clone", "--quiet", "--branch", "v9.2.1.1", "--depth", "1", "https://github.com/ONLYOFFICE/sdkjs-plugins.git", "/build/sdkjs-plugins"], is_no_errors)
     elif repo == "server":
       cmd("git", ["clone", "--quiet", "--branch", "master", "--depth", "1", "https://github.com/DEHuckaKpyT/server.git", "/build/server"], is_no_errors)
     elif repo == "web-apps":
